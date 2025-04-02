@@ -92,7 +92,7 @@ class BookingsController extends Controller
         $pastBookings = Bookings::find()
             ->where(['user_id' => $user_id, 'status' => ['completed','cancelled']])
             ->with('room')
-            ->orderBy('checkin DESC')
+            ->orderBy('id DESC')
             ->all();    
         
         // Manually format active bookings to include room details
@@ -111,7 +111,9 @@ class BookingsController extends Controller
                 'room' => $booking->room ? [
                     'id' => $booking->room->id,
                     'name' => $booking->room->name,
+                    'bed' => $booking->room->bed,
                     'image' => $booking->room->image_path,
+
                 ] : null
             ];
         }, $pastBookings);
@@ -119,7 +121,7 @@ class BookingsController extends Controller
         $activeBookings = Bookings::find()
             ->where(['user_id' => $user_id, 'status' => 'Booked'])
             ->with('room')
-            ->orderBy('checkin DESC')
+            ->orderBy('id DESC')
             ->limit(5)
             ->all();    
         
@@ -138,6 +140,7 @@ class BookingsController extends Controller
                 'room' => $activeBookings->room ? [
                     'id' => $activeBookings->room->id,
                     'name' => $activeBookings->room->name,
+                    'bed' => $activeBookings->room->bed,
                     'image' => $activeBookings->room->image_path,
                 ] : null
             ];
@@ -182,6 +185,8 @@ class BookingsController extends Controller
                 'room' => $bookingDetails->room ? [
                     'id' => $bookingDetails->room->id,
                     'name' => $bookingDetails->room->name,
+                    'bed' => $bookingDetails->room->bed,
+
                     'image' => $bookingDetails->room->image_path,
                     'price'=> $bookingDetails->room->price
                 ] : null

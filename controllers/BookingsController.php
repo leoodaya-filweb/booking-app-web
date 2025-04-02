@@ -72,6 +72,7 @@ class BookingsController extends Controller
         $query = Bookings::find();
         if (!empty($search)) {
             $query->joinWith(['user','room'])
+            ->andFilterWhere(['like', 'bookings.id', $search])
             ->andFilterWhere(['like', 'user.name', $search])
             ->andFilterWhere(['like', 'rooms.name', $search])
             ->orFilterWhere(['like', 'bookings.status', $search])
@@ -383,8 +384,9 @@ class BookingsController extends Controller
         if (isset($_POST['search'])) {
             $search = $_POST['search'];
             $dataProvider->query->andFilterWhere(['like', 'name', $search])
-                                ->orFilterWhere(['like', 'price', $search])
-                                ->orFilterWhere(['like', 'status', $search]);
+                ->orFilterWhere(['like', 'id', $search])
+                ->orFilterWhere(['like', 'price', $search])
+                ->orFilterWhere(['like', 'status', $search]);
         }
 
         

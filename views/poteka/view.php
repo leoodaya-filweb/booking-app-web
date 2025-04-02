@@ -4,14 +4,14 @@ use yii\helpers\Html;
 use yii\widgets\DetailView;
 
 /** @var yii\web\View $this */
-/** @var app\models\Rooms $model */
+/** @var app\models\PotekaWeather $model */
 
-$this->title = $model->name;
-$this->params['breadcrumbs'][] = ['label' => 'Rooms', 'url' => ['index']];
+$this->title = $model->id;
+$this->params['breadcrumbs'][] = ['label' => 'Poteka Weathers', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
 ?>
-<div class="rooms-view">
+<div class="poteka-weather-view">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
@@ -30,12 +30,11 @@ $this->params['breadcrumbs'][] = $this->title;
         'model' => $model,
         'attributes' => [
             'id',
-            'name',
-            'price',
-            'bed',
-            'description:ntext',
-            'image_path:ntext',
-            'status',
+            'station_name',
+            'datatime',
+            'temperature',
+            'humidity',
+            'weather',
         ],
     ]) ?>
 

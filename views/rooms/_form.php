@@ -16,7 +16,11 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'price')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'image_path')->textarea(['rows' => 6]) ?>
+    <?= $form->field($model, 'bed')->textInput(['maxlength' => true]) ?>
+
+    <?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
+
+    <?= $form->field($model, 'image_path')->textInput() ?>
 
     <?= $form->field($model, 'status')->dropDownList(['occupied' => 'Occupied', 'Available' => 'Available', 'Maintenance' => 'Maintenance'], ['prompt' => 'Select Status']) ?>
 

@@ -77,4 +77,39 @@ class AuthController extends Controller
             ]);
         }
     }
+
+    public function actionRegister(){
+        $requestData = json_decode($this->request->rawBody, true);
+    
+        if (!isset($requestData['email']) || !isset($requestData['password'])) {
+            return $this->asJson([
+                'message' => 'Email and password are required.',
+                'success' => false,
+            ]);
+        }
+    
+        $user = new User();
+        $user->name = $requestData['fullName'];
+        $user->username = $requestData['email'];
+        $user->password_hash = Yii::$app->security->generatePasswordHash($requestData['password']);
+        $user->role_id = 3;
+        $user->auth_key = Yii::$app->security->generateRandomString();
+        
+    
+        if($user->save()){
+            return $this->asJson([
+                'message' => 'Registration Successful',
+                'success' => true,
+                'status' => 200,
+            ]);
+        }else{
+            return $this->asJson([
+                'message' => 'Error creating user',
+                'success' => false,
+                'status' => 400,
+            ]);
+        }
+    
+    }
 }
+

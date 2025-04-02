@@ -50,6 +50,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <table class="table table-hover">
             <tr class="align-middle text-center">
                 <th>#</th>
+                <th>Booking ID</th>
                 <th>Room</th>
                 <th>Checkin</th>
                 <th>Checkout</th>
@@ -69,6 +70,8 @@ $this->params['breadcrumbs'][] = $this->title;
               <?php foreach ($bookings as $key => $model): ?>
                   <tr class="align-middle text-center">
                   <td><?= Html::encode($key+1) ?></td>
+                      <td><?= Html::encode($model->id) ?></td>
+
                       <td><?= Html::encode($model->room->name) ?></td>
                       
                       <td><?= Html::encode(Yii::$app->formatter->asDatetime($model->checkin, 'php:M-d-Y h:i:s A')) ?></td>

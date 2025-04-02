@@ -8,12 +8,19 @@ $db = require __DIR__ . '/db.php';
 $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log'],
+    'bootstrap' => ['log','queue'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
+        'queue' => [
+            'class' => \yii\queue\db\Queue::class,
+            'db' => 'db', // DB connection component or its config
+            'tableName' => '{{%queue}}', // Table name
+            'channel' => 'default', // Queue channel key
+            'mutex' => \yii\mutex\MysqlMutex::class, // Mutex used to sync queries
+        ],
         'timezone' => 'Asia/Manila', // Set your desired time zone
         'formatter' => [
             'defaultTimeZone' => 'UTC', // Keep UTC for consistency in backend processing
@@ -102,10 +109,13 @@ $config = [
                 'api-poteka-rectange' => 'site/rectangle',
                 'api-poteka-poteka' => 'site/poteka',
                 'api-poteka-camara' => 'site/camara',
+                'poteka-create' => 'poteka-weather/create',
                 ['class' => 'yii\rest\UrlRule', 'controller' => 'api/bookings'],
                 ['class' => 'yii\rest\UrlRule', 'controller' => 'api/rooms'],
                 ['class' => 'yii\rest\UrlRule', 'controller' => 'api/user'],
                 ['class' => 'yii\rest\UrlRule', 'controller' => 'api/reviews'],
+                ['class' => 'yii\rest\UrlRule', 'controller' => 'api/auth'],
+
 
             ],
         ],

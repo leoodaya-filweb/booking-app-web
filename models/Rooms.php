@@ -31,9 +31,10 @@ class Rooms extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'price', 'image_path', 'status'], 'required'],
-            [['price'], 'number'],
+            [['name', 'price','bed', 'image_path', 'status'], 'required'],
+            [['price','bed'], 'number'],
             [['image_path'], 'string'],
+            [['description'], 'string'],
             [['name'], 'string', 'max' => 250],
             [['status'], 'string', 'max' => 50],
         ];
@@ -48,6 +49,8 @@ class Rooms extends \yii\db\ActiveRecord
             'id' => 'ID',
             'name' => 'Name',
             'price' => 'Price',
+            'bed' => 'Number of Beds',
+            'description' => 'Description',
             'image_path' => 'Image Path',
             'status' => 'Status',
         ];

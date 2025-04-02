@@ -5,6 +5,7 @@ namespace app\controllers;
 use app\models\Bookings;
 use app\models\EntryForm;
 use app\models\SignupForm;
+use app\queue\InsertWeatherData;
 use Yii;
 use yii\base\Model;
 use yii\data\Pagination;
@@ -14,11 +15,16 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
+use app\models\PotekaWeather;
 use app\models\Rooms;
 use app\models\User;
+use DateTime;
+use DateTimeZone;
+use yii\db\Query;
 use yii\helpers\BaseUrl;
 use yii\httpclient\Client;
 
+use function PHPUnit\Framework\isEmpty;
 
 class SiteController extends Controller
 {
@@ -148,97 +154,159 @@ class SiteController extends Controller
 
     public function actionRectangle()
     {
-        $client = new Client();
-        
-        $encodedAuth = base64_encode("$this->userid:$this->password");
-    
-        $params = [
-            'swPoint' => '12.378408,118.358942',
-            'nePoint' => '18.787537,126.230646',
-            "element"  => "humi,temp,weather,solar,press_s",
-            "startDate" => gmdate('Y-m-d\TH:i:s+00:00', strtotime('-1 day')),
-            "endDate"   => "latest",
-        ];
-        
-        $apiUrl = rtrim($this->baseUrl, '/') . '/v1/area/real/ja/rectangle';
-        $url = $apiUrl . '?' . http_build_query($params);
-    
-        $response = $client->createRequest()
-            ->setMethod('GET')
-            ->setUrl($url) 
-            ->addHeaders([
-                'X-POTEKA-Authorization' => $encodedAuth, 
-                'Accept' => 'application/json'
-            ])
-            ->send();
-    
-        // return $response->getContent();
 
-        $data = json_decode($response->getContent(), true);
+        // $client = new Client();
+        
+        // $encodedAuth = base64_encode("$this->userid:$this->password");
     
-        $groupedData = [];
+        // $params = [
+        //     'swPoint' => '12.378408,118.358942',
+        //     'nePoint' => '18.787537,126.230646',
+        //     "element"  => "humi,temp,weather",
+        //     "startDate" => gmdate('Y-m-d\TH:i:s+00:00', strtotime('-1 hour')),
+        //     "endDate"   => "latest",
+        // ];
+        
+        // $apiUrl = rtrim($this->baseUrl, '/') . '/v1/area/real/ja/rectangle';
+        // $url = $apiUrl . '?' . http_build_query($params);
+    
+        // $response = $client->createRequest()
+        //     ->setMethod('GET')
+        //     ->setUrl($url) 
+        //     ->addHeaders([
+        //         'X-POTEKA-Authorization' => $encodedAuth, 
+        //         'Accept' => 'application/json'
+        //     ])
+        //     ->send();
+
+        // $data = json_decode($response->getContent(), true);
+    
+
+        // $chartData = [
+        //     'labels' => [], 
+        //     'temperature' => [],
+        //     'humidity' => []
+        // ];
+    
+        // if (isset($data['poteka'])) {
+        //     foreach ($data['poteka'] as $station) {
+        //         $stationName = $station['stationInfo']['stationName'];
+    
+        //         $tempData = [];
+        //         $humiData = [];
+        //         $weatherData = [];
+    
+        //         foreach ($station['element'] as $element) {
+        //             foreach ($element['dataList'] as $entry) {
+        //                 $dateTime = $entry['datatime'];
+    
+        //                 if ($element['elementName'] === 'temp') {
+        //                     $tempData[$dateTime] = $entry['value'];
+        //                 } elseif ($element['elementName'] === 'humi') {
+        //                     $humiData[$dateTime] = $entry['value'];
+        //                 } elseif ($element['elementName'] === 'weather') {
+        //                     $weatherData[$dateTime] = $entry['value'];
+        //                 }
+        //             }
+        //         }
+               
+        //         foreach ($tempData as $dateTime => $tempValue) {
+
+        //             $existingRecord =  PotekaWeather::findOne(['datatime' => $dateTime]);
+
+        //             if(!$existingRecord){
+        //                 $model = new PotekaWeather();
+
+        //                 $model->station_name = $stationName;
+        //                 $model->datatime = $dateTime;
+        //                 $model->temperature = $tempValue;
+        //                 $model->humidity = $humiData[$dateTime] ?? null;
+        //                 $model->weather = $weatherData[$dateTime] ?? 'N/A';
+
+
+        //                 if (!$model->save()) {
+        //                     Yii::$app->session->setFlash("Failed to save weather data: " . json_encode($model->errors));
+        //                 }
+                        
+        //             }
+
+                   
+        //         }
+        //     }
+        // }
+
+       
+        // Date request
+        $startDate = Yii::$app->request->get('start_date');
+        $endDate = Yii::$app->request->get('end_date');
+    
+
+        Yii::$app->queue->push(new InsertWeatherData());
 
         $chartData = [
             'labels' => [], 
             'temperature' => [],
             'humidity' => []
         ];
-    
-        if (isset($data['poteka'])) {
-            foreach ($data['poteka'] as $station) {
-                $stationName = $station['stationInfo']['stationName'];
-    
-                $tempData = [];
-                $humiData = [];
-                $weatherData = [];
-    
-                foreach ($station['element'] as $element) {
-                    foreach ($element['dataList'] as $entry) {
-                        $dateTime = $entry['datatime'];
-    
-                        if (!in_array($dateTime, $chartData['labels'])) {
-                            // $chartData['labels'][] = date('F j, Y - g:i A', strtotime($dateTime));
-                            $chartData['labels'][] = $dateTime;
-                        }
-                        
-                        if ($element['elementName'] === 'temp') {
-                            $tempData[$dateTime] = $entry['value'];
-                            $chartData['temperature'][] = $entry['value'];
-                        } elseif ($element['elementName'] === 'humi') {
-                            $humiData[$dateTime] = $entry['value'];
-                            $chartData['humidity'][] = $entry['value'];
-                        } elseif ($element['elementName'] === 'weather') {
-                            $weatherData[$dateTime] = $entry['value'];
-                        }
-                    }
-                }
-    
-               
-                foreach ($tempData as $dateTime => $tempValue) {
-                    $groupedData[] = [
-                        'stationName' => $stationName,
-                        'datetime' => $dateTime,
-                        'temperature' => $tempValue,
-                        'humidity' => $humiData[$dateTime] ?? null, 
-                        'weather' => $weatherData[$dateTime] ?? 'N/A', 
-                    ];
-                }
-            }
+        
+        $now = new DateTime('now', new DateTimeZone('Asia/Manila'));
+        $yesterday = clone $now;
+        $yesterday->modify('-1 day');
+        
+        $chartData['labels'] = PotekaWeather::find()
+            ->select('datatime')
+            ->where(['between', 'datatime', $yesterday->format('Y-m-d H:i:s'), $now->format('Y-m-d H:i:s')])
+            ->andWhere("MINUTE(datatime) % 30 = 0") 
+            ->orderBy(['datatime' => SORT_ASC])
+            ->column();
+        
+        $chartData['temperature'] = PotekaWeather::find()
+            ->select('temperature')
+            ->where(['between', 'datatime', $yesterday->format('Y-m-d H:i:s'), $now->format('Y-m-d H:i:s')])
+            ->andWhere("MINUTE(datatime) % 30 = 0")
+            ->orderBy(['datatime' => SORT_ASC])
+            ->column();
+        
+        $chartData['humidity'] = PotekaWeather::find()
+            ->select('humidity')
+            ->where(['between', 'datatime', $yesterday->format('Y-m-d H:i:s'), $now->format('Y-m-d H:i:s')])
+            ->andWhere("MINUTE(datatime) % 30 = 0")
+            ->orderBy(['datatime' => SORT_ASC])
+            ->column();
+        
+        // return print_r($chartData);
+
+        // Date request
+        if(!isEmpty(Yii::$app->request->get('start_date'))){
+            $startDate = Yii::$app->request->get('start_date');
+        }else{
+            $startDate = gmdate('Y-m-d\TH:i:s+00:00', strtotime('-1 day'));
         }
+
+        if(!isEmpty(Yii::$app->request->get('end_date'))){
+            $endDate = Yii::$app->request->get('end_date');
+        }else{
+            gmdate('Y-m-d\TH:i:s+00:00');
+        }
+        
     
-        $groupedData = array_reverse($groupedData);
-        // Pagination
+        $query = PotekaWeather::find();
+        $query->andFilterWhere(['between', 'datatime', $startDate, $endDate]);
+
         $pagination = new Pagination([
             'defaultPageSize' => 10,
-            'totalCount' => count($groupedData),
+            'totalCount' => $query->count(),
         ]);
-    
-        $paginatedItems = array_slice($groupedData, $pagination->offset, $pagination->limit);
-    
+
+        $weatherData = $query->orderBy('datatime DESC')
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->all();
+
         return $this->render('api', [
-            'items' => $paginatedItems,
+            'weatherData' => $weatherData,
             'chartData' => $chartData,
-            'pagination' => $pagination
+            'pagination' => $pagination,
         ]);
     }
     
